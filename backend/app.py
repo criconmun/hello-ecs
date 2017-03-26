@@ -3,8 +3,8 @@ import os
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello():
+@app.route("/backend")
+def motd():
     return os.environ.get('MOTD', 'No message specified...')
 
 if __name__ == "__main__":

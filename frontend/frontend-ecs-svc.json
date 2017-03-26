@@ -1,0 +1,54 @@
+{
+  "Parameters": {
+    "Version" : {
+      "Type" : "String",
+      "Description" : "Specify version of the container to deploy"
+    }
+  },
+  "Resources": {
+    "FrontendTask": {
+      "Type" : "AWS::ECS::TaskDefinition",
+      "Properties" : {
+        "ContainerDefinitions" : [
+          {
+            "Environment" : [
+              {
+                "Name" : "BACKEND_URL",
+                "Value" : "http://hello-ecs-elb-276483408.eu-west-1.elb.amazonaws.com/backend"
+              }
+            ],
+            "Image" : { "Fn::Join" : [ ":", [ "174422895388.dkr.ecr.eu-west-1.amazonaws.com/hello-ecs-frontend", { "Ref": "Version" } ] ] },
+            "Memory" : "32",
+            "Name" : "hello-ecs-frontend",
+            "PortMappings" : [
+              {
+                "ContainerPort" : 5000
+              }
+            ],
+          }
+        ],
+        "Family" : "hello-ecs-frontend",
+        "NetworkMode" : "bridge",
+      }
+    },
+    "FrontendService": {
+      "Type" : "AWS::ECS::Service",
+      "Properties" : {
+        "Cluster" : "ecs-cluster-01",
+        "DeploymentConfiguration" : {
+          "MinimumHealthyPercent" : 0
+        },
+        "DesiredCount" : 2,
+        "LoadBalancers" : [
+          {
+            "ContainerName": "hello-ecs-frontend",
+            "ContainerPort": 5000,
+            "TargetGroupArn": "arn:aws:elasticloadbalancing:eu-west-1:174422895388:targetgroup/hello-ecs-frontend/def85bdbbf77bd8f"
+          }
+        ],
+        "Role" : "arn:aws:iam::174422895388:role/ecsServiceRole",
+        "TaskDefinition" : { "Ref": "FrontendTask" }
+      }
+    }
+  }
+}
